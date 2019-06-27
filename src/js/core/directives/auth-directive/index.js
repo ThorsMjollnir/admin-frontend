@@ -41,7 +41,7 @@ function directiveFun($window, UserStateService, UserRequestService, ModalServic
         };
 
         scope.showPasswordReset = function () {
-            scope.recaptchaResponse = undefined;
+            scope.recaptchaResponse = "";
             ModalService.hideAll();
             ModalService.showPasswordResetModal();
         };
@@ -58,8 +58,11 @@ function directiveFun($window, UserStateService, UserRequestService, ModalServic
         scope.hidePasswordResetModal = function () {
             scope.passwordRequestDisabled = false;
             scope.passwordRequestSuccessful = false;
-            scope.recaptchaResponse = undefined;
-            $window.grecaptcha.reset();
+            scope.recaptchaResponse = "";
+
+            if (window.recaptcha.enabled)
+                $window.grecaptcha.reset();
+
             ModalService.hidePasswordResetModal();
             ModalService.showAuthenticateModal();
         };
@@ -69,8 +72,7 @@ function directiveFun($window, UserStateService, UserRequestService, ModalServic
         };
 
         scope.requestPasswordReset = function (r) {
-            if (scope.recaptchaResponse) {
-
+            if (!$window.recaptcha.enabled || scope.recaptchaResponse) {
                 scope.passwordRequestDisabled = true;
 
                 PasswordResetService.requestPasswordReset(scope.username, scope.recaptchaResponse).then(function () {
@@ -79,10 +81,9 @@ function directiveFun($window, UserStateService, UserRequestService, ModalServic
                     function () {
                         scope.passwordRequestDisabled = false;
                     });
-
             } else
                 MessageService.showWarning("Please tick the \"I'm not a robot\" box!");
-        }
+        };
 
         scope.$watchCollection(function () {
             return [ModalService.getModalAuthenticateVisible(),
